@@ -23,5 +23,9 @@ class RetrofitClient {
             }
             return INSTANCE
         }
+
+        fun <T> getService(serviceClass: Class<T>): T {
+            return getRetrofitInstance().create(serviceClass)
+        }
     }
 }

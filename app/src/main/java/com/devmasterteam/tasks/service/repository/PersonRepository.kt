@@ -26,7 +26,6 @@ class PersonRepository(val context: Context) {
         val call = remote.login(email, password)
         call.enqueue(object : Callback<PersonModel>{
             override fun onResponse(call: Call<PersonModel>, response: Response<PersonModel>) {
-                val s = ""
                 if(response.code() == TaskConstants.HTTP.SUCCESS){
                     response.body()?.let { listener.onSucess(it) }
                 } else {

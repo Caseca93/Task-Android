@@ -8,7 +8,6 @@ import com.google.gson.annotations.SerializedName
 @Entity(tableName = "Priority")
 class PriorityModel {
 
-
     @SerializedName("Id")
     @ColumnInfo(name = "id")
     @PrimaryKey()

@@ -1,11 +1,13 @@
 package com.devmasterteam.tasks.view
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,15 +22,19 @@ class AllTasksFragment : Fragment() {
     private lateinit var viewModel: TaskListViewModel
     private var _binding: FragmentAllTasksBinding? = null
     private val binding get() = _binding!!
+    private var taskFilter = 0
 
     private val adapter = TaskAdapter()
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, b: Bundle?): View {
         viewModel = ViewModelProvider(this).get(TaskListViewModel::class.java)
         _binding = FragmentAllTasksBinding.inflate(inflater, container, false)
 
         binding.recyclerAllTasks.layoutManager = LinearLayoutManager(context)
         binding.recyclerAllTasks.adapter = adapter
+
+        taskFilter = requireArguments().getInt(TaskConstants.BUNDLE.TASKFILTER, 0)
 
         val listener = object : TaskListener{
             override fun onListClick(id: Int) {
@@ -56,7 +62,7 @@ class AllTasksFragment : Fragment() {
         }
 
         adapter.attachListener(listener)
-        viewModel.list()
+
 
         // Cria os observadores
         observe()
@@ -64,9 +70,10 @@ class AllTasksFragment : Fragment() {
         return binding.root
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onResume() {
         super.onResume()
-        viewModel.list()
+        viewModel.list(taskFilter)
     }
 
     override fun onDestroyView() {

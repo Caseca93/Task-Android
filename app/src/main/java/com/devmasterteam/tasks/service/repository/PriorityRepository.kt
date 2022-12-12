@@ -13,35 +13,46 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class PriorityRepository(val context: Context) {
+class PriorityRepository(context: Context) : BaseRepository(context) {
 
     private val remote = RetrofitClient.getService(PriorityService::class.java)
     private val database = TaskDatabase.getDatabase(context).priorityDAO()
 
+    companion object {
+        private val cache = mutableMapOf<Int, String>()
+        fun getDescription(id: Int): String {
+            return cache[id] ?: ""
+        }
+        fun setDescription(id: Int, str: String){
+            cache[id] = str
+        }
+    }
+
     fun list(listener: APIListener<List<PriorityModel>>) {
-        val call = remote.list()
-        call.enqueue(object : Callback<List<PriorityModel>>{
-            override fun onResponse(call: Call<List<PriorityModel>>, r: Response<List<PriorityModel>>) {
-                if(r.code() == TaskConstants.HTTP.SUCCESS){
-                    r.body()?.let { listener.onSucess(it) }
-                } else {
-                    listener.onFailure(failResponse(r.errorBody()!!.string()))
-                }
-            }
+        if (!isConnectionAvaible()){
+            listener.onFailure(context.getString(R.string.ERROR_INTERNET_CONNECTION))
+            return
+        }
+        executeCall(remote.list(), listener)
+    }
 
-            override fun onFailure(call: Call<List<PriorityModel>>, t: Throwable) {
-                listener.onFailure(context.getString(R.string.ERROR_UNEXPECTED))
-            }
+    fun list(): List<PriorityModel>{
+        return database.list()
+    }
 
-        })
+    fun getDescription(id: Int): String{
+        val cached = PriorityRepository.getDescription(id)
+        return if (cached == ""){
+            val description = database.getDescription(id)
+            PriorityRepository.setDescription(id, description)
+            description
+        } else {
+            cached
+        }
     }
 
     fun save(list: List<PriorityModel>){
         database.clear()
         database.save(list)
-    }
-
-    private fun failResponse(str: String): String{
-        return Gson().fromJson(str, String::class.java)
     }
 }
